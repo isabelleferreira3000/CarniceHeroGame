@@ -47,7 +47,7 @@ background_surface.fill(black)
 
 #áudios importados
 errorSound = pygame.mixer.Sound("sounds/note_erro.ogg")
-serranaBossa = pygame.mixer.Sound("sounds/Serrana.ogg")
+serranaBossa = pygame.mixer.Sound("sounds/samba_normal0.7.ogg")
 
 
 def DrawDisplay(display_width,display_heigth,fps,Name):
@@ -252,11 +252,32 @@ def makesList():
         i = random.randint(0,4)
         if buttonList[i]:
             lastTime = buttonList[i][len(buttonList[i]) - 1]
-        lastTime = lastTime + random.randint(0,40)/10
+        lastTime = lastTime + random.randint(0,40)/5
         buttonList[i].append(lastTime)
         n = n + 1
         #dn = dn - 1
     #return n
+
+def makesListVirada():
+    global buttonList
+    lastTime = 0
+    x=2
+    #n = 0
+    #while n < 200:
+    #buttonList = ([0, 3], [1], [0], [0], [0], [0])
+    #SAMBA RETOSS
+    #buttonList = ([0.5*x, 0.75*x, 1.25*x, 1.75*x], [0.125*x, 0.625*x, 0.875*x, 1.125*x, 1.375*x, 1.625*x, 1.875*x], [0.25*x], [0.375*x], [0*x, 1*x, 1.5*x])
+
+
+    buttonList = ([12.1, 17.8, 23.6, 25, 30.1, 31.5, 36.6, 38,  43.1,44.5],
+                  [10.7, 12.9, 16.6], [11.6, 15.2, 17.2, 22.9, 24.3, 29.4, 30.8, 35.9, 37.3, 42.4, 43.8],
+                  [19.2], [6.9, 7.4, 7.9, 10, 16.0, 22.2, 28.7, 35.2, 41.7])
+
+
+        #n = n + 1
+        #dn = dn - 1
+    #return n
+
 
 
 def beginScene():
@@ -330,6 +351,8 @@ def drawScene():
     global background_surface
     global display_Width, display_Height
     global counterros, countacertos
+
+    
     #gameDisplay.fill((0.0,0.0,0.0))
     gameDisplay.blit(background_surface,(0,0))
     BackGr = pygame.image.load("images/backgr_ok.png")
@@ -339,7 +362,6 @@ def drawScene():
     ImageMestreSad = pygame.image.load('images/triste.png')
     ImageMestreDead = pygame.image.load('images/morta.png')
     ImageMestreWings = pygame.image.load('images/mortaAsas.png')
-
     
     gameDisplay.blit(ImageMestreNormal, (display_Width/2 - 125 ,45))
 
@@ -352,8 +374,20 @@ def drawScene():
 
     if countacertos > 50:
         gameDisplay.blit(ImageSurprised, (display_Width/2 - 125 ,45))
-    
+
     ButtonsToDraw()
+
+
+def contRegress():
+    ImageOne = pygame.image.load('images/cont1.png')
+    ImageTwo = pygame.image.load('images/cont2.png')
+    ImageThree = pygame.image.load('images/cont3.png')
+    ImageFour = pygame.image.load('images/cont4.png')
+
+    time.sleep(2)
+    gameDisplay.blit(ImageOne, (display_Width/2,100))
+    time.sleep(0.5)
+    gameDisplay.blit(ImageTwo, (display_Width/2,100))
     
 
 
@@ -395,15 +429,23 @@ def Update():
     #flag = 5
     #print('flag' + str(flag))
     drawScene()
+
+    #   CHAMA CONTAGEM REGRESSIVA AQUI
+    #contRegress()
+    
     pressNotes.events(evt)
     #flag = 6
     #print('flag' + str(flag))
     pygame.display.flip()
 
-makesList()
+#makesList()
+makesListVirada()
 
-
+inicio = time.time()
 while not gameExit:
-    Update()
+    fim = time.time()
+    temporizador = fim - inicio    
+    print(temporizador)
+    Update()    
 Quit()
 print("fim")
