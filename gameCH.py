@@ -7,7 +7,10 @@
 import random, math, pygame, sys, os, time
 from pygame.locals import *
 
+os.environ['SDL_VIDEO_CENTERED'] = '1' #abre a tela do jogo já centralizada
+
 pygame.init()
+pygame.font.init()
 
 display_Width = 1115
 display_Height = 713
@@ -25,7 +28,6 @@ counterros = 0
 gameExit = False
 onLoad = False
 onPause = False
-#UI = Canvas()
 
 buttonList  = ([],[],[],[],[]) #lista dos tempos que cada nota deverá ser pressionada
 indexButtonDraw = [0,0,0,0,0] #diz qual é o index da última nota a ser desenhada, para não ter que percorrer toda a buttonList
@@ -42,12 +44,13 @@ gameDisplay = pygame.display.set_mode((display_Width, display_Height))
 clock = pygame.time.Clock()
 background_surface = pygame.Surface((display_Width, display_Height))
 background_surface.fill(black)
-#icone do titulo
-
+icon = pygame.image.load('images/urubu.png')
+pygame.display.set_icon(icon)
 
 #áudios importados
 errorSound = pygame.mixer.Sound("sounds/note_erro.ogg")
-serranaBossa = pygame.mixer.Sound("sounds/samba_normal0.7.ogg")
+musicaJogo = pygame.mixer.music
+musicaJogo.load("sounds/samba_normal0.7.ogg")
 
 
 def DrawDisplay(display_width,display_heigth,fps,Name):
@@ -86,8 +89,6 @@ class Image:
         global gameDisplay
         gameDisplay.blit(image, (int(pos[0] - rect.center[0]),int(pos[1] - rect.center[1])))
 
-
-
 class imageNotes: #lista de botões para instanciar as notas (definir comportamento), sem ter que armazenar as notas da tela
     def __init__(self):
         global display_Height
@@ -105,8 +106,6 @@ class imageNotes: #lista de botões para instanciar as notas (definir comportame
         
     def isometricPositionDraw(self,index,time): #transforma a imagem dependendo da posição em que ela aparece,para se mostrar uma vista isometrica,para desenha-la
         global Time, deltaTime
-
-        ########################## TESTAR NOVOS VALORES
         iniRatio = 0.20
         lastRatio = 0.95
         showNoteTime = 0.2
@@ -118,7 +117,6 @@ class imageNotes: #lista de botões para instanciar as notas (definir comportame
         ratio = r*(lastRatio-iniRatio)/deltaTime + iniRatio
         image = Image.scaleImage(self.Images[index].Image,(ratio,ratio))
 
-        ##########################
         #### altera-se em posY a distância do topo da tela e o início da nota
         posY = ratio*self.display_Height + 240
         #### altera-se em posX a distância horizontal entre as notas
@@ -132,7 +130,6 @@ class imageNotes: #lista de botões para instanciar as notas (definir comportame
             return
         Image.drawChangedImage(image,(posX,posY))
 
-
 class playNote():
     def __init__(self, nomallocal, pressDir, rightDir):
         global display_Height
@@ -143,7 +140,6 @@ class playNote():
 
         for i in range(0,5):
             self.posX.append(display_Width/2 + 1.5*(i-2)*Notes.Images[i].Image.get_width())
-        ############################
         self.Images = [] #imagem a ser desenhada
         self.NormalStateImage = [] #imagem a ser desenhada quando os botões para pressionar as notas não forem ativados
         self.pressedImages = [] #imagem a ser desenhada quando os botões forem ativados e errarem
@@ -167,7 +163,6 @@ class playNote():
         global deltaTime
         global indexButtonDraw
         global counterros, countacertos
-        #global errorSound
         if not buttonList[i]:
             self.Images[i] = self.pressedImages[i]
             return
@@ -180,18 +175,18 @@ class playNote():
         while t >= impresTime and  j < n:
             j = j + 1
             t = time - buttonList[i][j] - 2*deltaTime
-        if t < impresTime and t > -impresTime:
-            self.Images[i] = self.rightImages[i] #troca a imagem a ser desenhada
-            del buttonList[i][j]
-            indexButtonDraw[i] = indexButtonDraw[i] - 1
-            countacertos = countacertos + 1
-            print('acertos = ', countacertos) #adiciona os pontos por ter acertado a nota
-        else:
-            self.Images[i] = self.pressedImages[i]
-            print('Ativa o som do erro') #ativa o som do erro
-            errorSound.play()
-            counterros = counterros + 1
-            print('erros = ', counterros)
+        if onPause == False:
+            if t < impresTime and t > -impresTime:
+                self.Images[i] = self.rightImages[i] #troca a imagem a ser desenhada
+                del buttonList[i][j]
+                indexButtonDraw[i] = indexButtonDraw[i] - 1
+                countacertos = countacertos + 1
+                print('acertos = ', countacertos) #adiciona os pontos por ter acertado a nota
+            else:
+                self.Images[i] = self.pressedImages[i]
+                errorSound.play()
+                counterros = counterros + 1
+                print('erros = ', counterros)
     def noteUnpress(self, i):
         self.Images[i] = self.NormalStateImage[i]
 
@@ -203,9 +198,8 @@ class playNote():
             i = i + 1
 
     def events(self, evt):
-        
         global Time
-        imprecisionTime = 0.1 #intervalo de tempo em que o jogador pode ser impreciso
+        imprecisionTime = 1 #intervalo de tempo em que o jogador pode ser impreciso
         i = 0
         for event in evt:
             if event.type == pygame.KEYDOWN:
@@ -233,7 +227,6 @@ class playNote():
                     i = 4
                 self.noteUnpress(i)
 
-
 Notes = imageNotes()
 Notes.loadImages(("images/green_note.png","images/yellow_note.png","images/red_note.png","images/blue_note.png","images/orange_note.png"))
 pressNotes = playNote(nomallocal = ("images/green_fixed.png","images/yellow_fixed.png","images/red_fixed.png","images/blue_fixed.png","images/orange_fixed.png")
@@ -245,9 +238,6 @@ def makesList():
     global buttonList
     lastTime = 0
     n = 0
-    #dn = 1
-    #flag = 0
-    #print('flag' + str(flag))
     while n < 200:
         i = random.randint(0,4)
         if buttonList[i]:
@@ -255,54 +245,32 @@ def makesList():
         lastTime = lastTime + random.randint(0,40)/5
         buttonList[i].append(lastTime)
         n = n + 1
-        #dn = dn - 1
-    #return n
 
 def makesListVirada():
     global buttonList
     lastTime = 0
     x=2
-    #n = 0
-    #while n < 200:
-    #buttonList = ([0, 3], [1], [0], [0], [0], [0])
-    #SAMBA RETOSS
-    #buttonList = ([0.5*x, 0.75*x, 1.25*x, 1.75*x], [0.125*x, 0.625*x, 0.875*x, 1.125*x, 1.375*x, 1.625*x, 1.875*x], [0.25*x], [0.375*x], [0*x, 1*x, 1.5*x])
-
-
-    buttonList = ([12.1, 17.8, 23.6, 25, 30.1, 31.5, 36.6, 38,  43.1,44.5],
-                  [10.7, 12.9, 16.6], [11.6, 15.2, 17.2, 22.9, 24.3, 29.4, 30.8, 35.9, 37.3, 42.4, 43.8],
-                  [19.2], [6.9, 7.4, 7.9, 10, 16.0, 22.2, 28.7, 35.2, 41.7])
-
-
-        #n = n + 1
-        #dn = dn - 1
-    #return n
-
-
+    buttonList = ([12.1, 17.8, 23.6, 25, 30.1, 31.5, 36.6, 38, 43.1, 44.5, 48.7, 52.2, 52.9, 57.8, 61.1, 64.6, 65.3, 70.2],
+                  [10.7, 12.9, 16.6, 50.8, 53.6, 57.1, 63.2, 66, 69.5],
+                  [11.6, 15.2, 17.2, 22.9, 24.3, 29.4, 30.8, 35.9, 37.3, 42.4, 43.8, 48, 49.4, 55.7, 60.4, 61.8, 68.1],
+                  [19.2, 50.1, 54.3, 55.0, 58.5, 59.2, 62.5, 66.7, 67.4, 70.9, ],
+                  [6.9, 7.4, 7.9, 10, 16.0, 22.2, 28.7, 35.2, 41.7, 47.3, 51.5, 56.4, 59.7, 63.9, 68.8])
 
 def beginScene():
-    #global numberOfButtons
-    #numberOfButtons = 0
-    #numberOfButtons = makesList(numberOfButtons)
     global onPause
     global display_Width
     global display_Height
     global FPS
     global gameName
     global gameDisplay
+    global musicaJogo
     
     onPause = False
     global Time
     Time = 0.0
     gameDisplay.fill((0.0,0.0,0.0))
-
-
-    #flag = 1
-    #print('flag' + str(flag))
     gameDisplay = DrawDisplay(display_Width,display_Height,FPS,gameName)
-
-    #time.sleep(6)
-    serranaBossa.play()
+    musicaJogo.play()
     
 beginScene()
 
@@ -323,8 +291,6 @@ def ButtonsToDraw():
         i = i - 1
     i = Notes.i - 1
     leftLine = display_Width/2 - 2*45
-    #flag = 2
-    #print('flag' + str(flag))
     pressNotes.drawPlayNotes()
     while i >= 0:
         j = indexButtonDraw[i]
@@ -338,22 +304,15 @@ def ButtonsToDraw():
                 indexButtonDraw[i] = j
         while j > 0:
             j = j - 1
-            #drawButton(color,(leftLine + i*45,(Time - buttonList[i][j] - deltaTime )*globalVar.display_Height/deltaTime))
             Notes.isometricPositionDraw(i,buttonList[i][j])
         i = i-1
-    #flag = 3
-    #print('flag' + str(flag)) 
 
-
-#def drawTimingButton():
 def drawScene():
     global gameDisplay
     global background_surface
     global display_Width, display_Height
     global counterros, countacertos
 
-    
-    #gameDisplay.fill((0.0,0.0,0.0))
     gameDisplay.blit(background_surface,(0,0))
     BackGr = pygame.image.load("images/backgr_ok.png")
     gameDisplay.blit(BackGr, (0,0))
@@ -377,19 +336,24 @@ def drawScene():
 
     ButtonsToDraw()
 
-
 def contRegress():
     ImageOne = pygame.image.load('images/cont1.png')
     ImageTwo = pygame.image.load('images/cont2.png')
     ImageThree = pygame.image.load('images/cont3.png')
     ImageFour = pygame.image.load('images/cont4.png')
-
-    time.sleep(2)
-    gameDisplay.blit(ImageOne, (display_Width/2,100))
-    time.sleep(0.5)
-    gameDisplay.blit(ImageTwo, (display_Width/2,100))
+    CarniChegou = pygame.image.load('images/carniceriachegou.png')
+    timePause = 0
     
-
+    if temporizador >=(3+timePause) and temporizador <(3.8+timePause):
+        gameDisplay.blit(ImageOne, (display_Width/2 - 250,100))
+    if temporizador >=3.8 and temporizador <4.6:
+        gameDisplay.blit(ImageTwo, (display_Width/2 - 180,100))
+    if temporizador >=4.6 and temporizador <5.4:
+        gameDisplay.blit(ImageThree, (display_Width/2 - 180,100))
+    if temporizador >=5.4 and temporizador <6.2:
+        gameDisplay.blit(ImageFour, (display_Width/2 - 220,100))
+    if temporizador >=25.5 and temporizador <27.7:
+        gameDisplay.blit(CarniChegou, (display_Width/2 - 370,280))
 
 def Update():
     global Time
@@ -398,53 +362,77 @@ def Update():
     global gameExit
     global FPS
     global pressNotes
+    global gameDisplay, display_Width, display_Height
+    global musicaJogo
+    global counterros, countacertos
 
-    #global numberOfButtons
-    #numberOfButtons = makesList(numberOfButtons)
-    #flag = 4
+    score = countacertos - counterros
+    
+    ImagePause = pygame.image.load('images/pause.png')
+    ImageScore = pygame.image.load('images/score.png')
     dt = clock.tick(FPS)/1000
-    #print('flag' + str(flag))
     if onPause == False:
         Frame = Frame + 1
         Time = Time + dt
-    #    if Frame % 30 == 0:
-     #       print(Time)
-      #      print("Frame: " + " " + str(Frame))
+
+    ##painel de scores
+    text = pygame.font.Font("Symtext.ttf", 37)
+    realScore = text.render(str(score), 1, white)
+
+    drawScene()
     evt = Event()
     for event in evt:
         if event.type == GameQuit():
             gameExit = True
-        #elif event.type == pygame.MOUSEBUTTONDOWN:
-         #   if event.button == 1: #botão esquerdo
-               #eventos de cick de botão 
-        elif event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN:            
             if event.key == pygame.K_ESCAPE:
+                counterros = counterros - 1
+                
                 if onPause:
                     onPause = False
+                    musicaJogo.unpause()
+                    print(onPause)
+                    
                 elif not onPause:
                     onPause = True
+                    musicaJogo.pause()
+                    print(onPause)
+                    #fazer a imagem ficar enquanto o pause é vdd
+                    gameDisplay.blit(ImagePause, (150,300))
+           
+    if onPause == False:
+        gameDisplay.blit(ImageScore, (40,630))
+        gameDisplay.blit(realScore, (240,619))
     
-        #elif event.type == pygame.KEYUP:
-         #   break
-    #flag = 5
-    #print('flag' + str(flag))
-    drawScene()
-
-    #   CHAMA CONTAGEM REGRESSIVA AQUI
-    #contRegress()
+    contRegress()
+    
     
     pressNotes.events(evt)
-    #flag = 6
-    #print('flag' + str(flag))
     pygame.display.flip()
 
 #makesList()
 makesListVirada()
 
 inicio = time.time()
+tempozera1 = [0]
+tempozera2 = [0]
+i=0
 while not gameExit:
     fim = time.time()
-    temporizador = fim - inicio    
+    temporizador = fim - inicio
+    #fimPause = temporizador
+    #inicioPause = fimPause
+    if onPause == True:
+        tempozera1.append(temporizador)
+        i=i+1
+        #inicioPause = temporizador
+        #print('pausadoooooooooo', tempozera1[i]-tempozera1[1])
+    if onPause == False:
+        fimPause = temporizador
+    
+        
+    #print('pausouuuuuuuuuuuuuuuuuuuuuuuuu?', tempozera1[i])
+    
     print(temporizador)
     Update()    
 Quit()
