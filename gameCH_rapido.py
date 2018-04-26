@@ -264,7 +264,11 @@ def Quit():
 class Image:
     def __init__(self, local):
         self.Local = local
-        self.Image = Image.scaleImage(pygame.image.load(local), (2.0, 2.0)).convert_alpha()
+        self.Image = Image.scaleImage(pygame.image.load(local), (1.0, 1.0)).convert_alpha()
+        self.Rect = self.Image.get_rect()
+
+    def changeImage(self,image):
+        self.Image = image
         self.Rect = self.Image.get_rect()
 
     def scaleImage(image, scale=(1.0, 1.0)):
@@ -289,6 +293,7 @@ class imageNotes:  # lista de botões para instanciar as notas (definir comporta
         global display_Width
         self.display_Height = display_Height
         self.display_Width = display_Width
+        self.rposX = [[0.105,-0.255],[0.06,-0.130],[0.0,0.0],[-0.06,0.130],[-0.105,0.255]]
 
     def loadImages(self, local):
         self.Images = []
@@ -301,26 +306,26 @@ class imageNotes:  # lista de botões para instanciar as notas (definir comporta
     def isometricPositionDraw(self, index,
                               time):  # transforma a imagem dependendo da posição em que ela aparece,para se mostrar uma vista isometrica,para desenha-la
         global Time, deltaTime
-        iniRatio = 0.20
+        iniRatio = 0.54
         lastRatio = 0.95
-        showNoteTime = 0.2
+        posY0 = iniRatio*self.display_Height
 
         r = (Time - time - deltaTime)
         if (r <= 0.0):
             return
 
-        ratio = r * (lastRatio - iniRatio) / deltaTime + iniRatio
+        ratio = (r * (lastRatio - iniRatio) / deltaTime + iniRatio)/lastRatio
+
         image = Image.scaleImage(self.Images[index].Image, (ratio, ratio))
-
         #### altera-se em posY a distância do topo da tela e o início da nota
-        posY = ratio * self.display_Height + 240
+        posY = ratio * self.display_Height
         #### altera-se em posX a distância horizontal entre as notas
-        posX = self.display_Width / 2 + 1.2 * (index - 2) * image.get_width()
-
-        if (r < showNoteTime):
-            dy = image.get_height()
-            image = Image.cutImage(image, (0.0, r / showNoteTime))
-            dy = dy - image.get_height() / 2
+        posX = self.display_Width*(1+self.rposX[index][0] + ratio*(self.rposX[index][1]- self.rposX[index][0]))/2
+        dy = image.get_height()
+        r = (posY + (dy>>1) - posY0)/dy
+        if (r < 1):
+            image = Image.cutImage(image, (1.0, r))
+            dy = (dy - image.get_height())>>1
             Image.drawChangedImage(image, (posX, posY + int(dy)))
             return
         Image.drawChangedImage(image, (posX, posY))
@@ -334,24 +339,32 @@ class playNote():
         self.posY = 0.95 * display_Height
         self.posX = []
 
-        for i in range(0, 5):
-            self.posX.append(display_Width / 2 + 1.5 * (i - 2) * Notes.Images[i].Image.get_width())
+        """for i in range(0, 5):
+                                    self.posX.append(display_Width / 2 + 1.5 * (i - 2) * Notes.Images[i].Image.get_width())"""
         self.Images = []  # imagem a ser desenhada
         self.NormalStateImage = []  # imagem a ser desenhada quando os botões para pressionar as notas não forem ativados
         self.pressedImages = []  # imagem a ser desenhada quando os botões forem ativados e errarem
         self.rightImages = []  # imagem a ser desenhada quando as notas forem pressionadas corretamente
         i = 0
-
+        escala = 2
         for loc in nomallocal:
-            self.NormalStateImage.append(Image(loc))
-            self.Images.append(Image(loc))
+            img = Image(loc)
+            img.changeImage(Image.scaleImage(img.Image, scale=(escala, escala)))
+            self.NormalStateImage.append(img)
+            self.Images.append(img)
             i = i + 1
+        for i in range(0, 5):
+            self.posX.append(display_Width / 2 + 1.5 * (i - 2) * self.NormalStateImage[i].Image.get_width())
 
         for loc in pressDir:
-            self.pressedImages.append(Image(loc))
+            img = Image(loc)
+            img.changeImage(Image.scaleImage(img.Image, scale=(escala, escala)))
+            self.pressedImages.append(img)
 
         for loc in rightDir:
-            self.rightImages.append(Image(loc))
+            img = Image(loc)
+            img.changeImage(Image.scaleImage(img.Image, scale=(escala, escala)))
+            self.rightImages.append(img)
         self.i = i  # número de imagens armazenadas na variável
 
     def notePressed(self, i, time, impresTime):
@@ -370,11 +383,11 @@ class playNote():
         n = indexButtonDraw[i]
         j = -1
 
-        while t >= impresTime and j < n:
+        while t > impresTime and j < n:
             j = j + 1
             t = time - buttonList[i][j] - 2 * deltaTime
         if onPause == False:
-            if t < impresTime and t > -impresTime:
+            if t < impresTime/10 and t > -impresTime:
                 self.Images[i] = self.rightImages[i]  # troca a imagem a ser desenhada
                 del buttonList[i][j]
                 indexButtonDraw[i] = indexButtonDraw[i] - 1
@@ -399,12 +412,12 @@ class playNote():
         i = 0
         while i < 5:
             pos = (self.posX[i], self.posY)
-            Image.drawChangedImage(self.Images[i].Image, (self.posX[i] / 2 + 280, self.posY))
+            Image.drawChangedImage(self.Images[i].Image, (self.posX[i] , self.posY))
             i = i + 1
 
     def events(self, evt):
         global Time
-        imprecisionTime = 0.5  # intervalo de tempo em que o jogador pode ser impreciso
+        imprecisionTime = 1  # intervalo de tempo em que o jogador pode ser impreciso
         i = -1
         for event in evt:
             if event.type == pygame.KEYDOWN:
@@ -695,8 +708,11 @@ def contRegress():
 
 ImagePause = pygame.image.load('images/pause.png')
 ImageScore = pygame.image.load('images/score.png')
-
-
+scoreAntigo = 0
+##painel de scores
+text = pygame.font.Font("Symtext.ttf", 37)
+realScore = text.render(str(0), 1, white)
+blitText = []
 def Update():
     global Time
     global onPause
@@ -706,9 +722,10 @@ def Update():
     global pressNotes
     global gameDisplay, display_Width, display_Height
     global musicaJogo
-    global counterros, countacertos
+    global counterros, countacertos,scoreAntigo
     global atual_frame_rect, last_frame_rect
     global ImagePause, ImageScore
+    global realScore,text,blitText
 
     score = countacertos - counterros
 
@@ -717,9 +734,9 @@ def Update():
         Frame = Frame + 1
         Time = Time + dt
 
-    ##painel de scores
-    text = pygame.font.Font("Symtext.ttf", 37)
-    realScore = text.render(str(score), 1, white)
+    
+    if not score == scoreAntigo:
+        realScore = text.render(str(score), 1, white)
 
     drawScene()
     evt = Event()
@@ -744,8 +761,13 @@ def Update():
                     # gameDisplay.blit(ImagePause, (150,300))
 
     if not onPause:
-        gameDisplay.blit(ImageScore, (40, 630))
-        gameDisplay.blit(realScore, (240, 619))
+        if not scoreAntigo == score:
+            atual_frame_rect.append(gameDisplay.blit(ImageScore, (40, 630)))
+            atual_frame_rect.append(gameDisplay.blit(realScore, (240, 619)))
+            atual_frame_rect.append(blitText)
+        else:
+            gameDisplay.blit(ImageScore, (40, 630))
+            blitText = gameDisplay.blit(realScore, (240, 619))
 
     contRegress()
 
