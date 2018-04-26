@@ -231,8 +231,7 @@ Notes = imageNotes()
 Notes.loadImages(("images/green_note.png","images/yellow_note.png","images/red_note.png","images/blue_note.png","images/orange_note.png"))
 pressNotes = playNote(nomallocal = ("images/green_fixed.png","images/yellow_fixed.png","images/red_fixed.png","images/blue_fixed.png","images/orange_fixed.png")
     ,pressDir = ("images/green_pressed.png","images/yellow_pressed.png","images/red_pressed.png","images/blue_pressed.png","images/orange_pressed.png")
-    ,rightDir = ("images/greenPressed.png","images/yellowPressed.png","images/redPressed.png","images/bluePressed.png","images/orangePressed.png"))
-###### alterar as imagens dorightDir
+    ,rightDir = ("images/ok_note.png","images/ok_note.png","images/ok_note.png","images/ok_note.png","images/ok_note.png"))
 
 def makesList():
     global buttonList
@@ -251,9 +250,9 @@ def makesListVirada():
     lastTime = 0
     x=2
     buttonList = ([12.1, 17.8, 23.6, 25, 30.1, 31.5, 36.6, 38, 43.1, 44.5, 48.7, 52.2, 52.9, 57.8, 61.1, 64.6, 65.3, 70.2],
-                  [10.7, 12.9, 16.6, 50.8, 53.6, 57.1, 63.2, 66, 69.5],
+                  [10.7, 12.9, 16.6, 50.8, 53.6, 57.1, 63.2, 66, 69.5, 74.5, 75.2, 76, 76.7, 77.5, 78.2, 79, 79.8],
                   [11.6, 15.2, 17.2, 22.9, 24.3, 29.4, 30.8, 35.9, 37.3, 42.4, 43.8, 48, 49.4, 55.7, 60.4, 61.8, 68.1],
-                  [19.2, 50.1, 54.3, 55.0, 58.5, 59.2, 62.5, 66.7, 67.4, 70.9, ],
+                  [19.2, 50.1, 54.3, 55.0, 58.5, 59.2, 62.5, 66.7, 67.4, 70.9, 75.6, 77.1, 78.6, 79.4, 80.2],
                   [6.9, 7.4, 7.9, 10, 16.0, 22.2, 28.7, 35.2, 41.7, 47.3, 51.5, 56.4, 59.7, 63.9, 68.8])
 
 def beginScene():

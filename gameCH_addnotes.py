@@ -9,9 +9,7 @@ from pygame.locals import *
 
 last_frame_rect = []
 atual_frame_rect = []
-timePause = 0
-tempodespause = 0
-tempopause = 0
+
 
 class Relogio:
     """ Classe com as informacoes do relogio do jogo. """
@@ -65,7 +63,6 @@ class Menu:
         menu_dificuldade_samba_normal = Tela(1115, 713, "CarniceHero", "menu_dificuldade_samba_normal.jpg")
         menu_dificuldade_samba_frenetico = Tela(1115, 713, "CarniceHero", "menu_dificuldade_samba_frenetico.jpg")
         menu_dificuldade_voltar = Tela(1115, 713, "CarniceHero", "menu_dificuldade_voltar.jpg")
-        nivel_bloqueado = Tela(1115, 713, "CarniceHero", "nivel_bloqueado.jpg")
 
         audio_menu_navigate = Audio("menu_navigate_0.wav", 1)
 
@@ -88,7 +85,7 @@ class Menu:
                         if estado == "menu_inicial_iniciar":
                             audio_menu_navigate.audio.play()
                             estado = "menu_dificuldade_olodum"
-                        elif estado == "menu_dificuldade_voltar" or estado == "nivel_bloqueado":
+                        elif estado == "menu_dificuldade_voltar":
                             audio_menu_navigate.audio.play()
                             estado = "menu_inicial_iniciar"
                         elif estado == "menu_inicial_como_jogar":
@@ -103,9 +100,6 @@ class Menu:
                         elif estado == "menu_creditos":
                             audio_menu_navigate.audio.play()
                             estado = "menu_inicial_creditos"
-                        elif estado == "menu_dificuldade_olodum" or estado == "menu_dificuldade_samba_frenetico":
-                            audio_menu_navigate.audio.play()
-                            estado = "nivel_bloqueado"
                         else:
                             audio_menu_navigate.audio.play()
                             menu = False
@@ -184,8 +178,6 @@ class Menu:
                 menu_dificuldade_samba_frenetico.tela.blit(menu_dificuldade_samba_frenetico.imagemFundo, (0, 0))
             elif estado == "menu_dificuldade_voltar":
                 menu_dificuldade_voltar.tela.blit(menu_dificuldade_voltar.imagemFundo, (0, 0))
-            elif estado == "nivel_bloqueado":
-                nivel_bloqueado.tela.blit(nivel_bloqueado.imagemFundo, (0, 0))
 
             relogio_jogo.relogio.tick(relogio_jogo.fps)
             pygame.display.update()
@@ -272,11 +264,7 @@ def Quit():
 class Image:
     def __init__(self, local):
         self.Local = local
-        self.Image = Image.scaleImage(pygame.image.load(local), (1.0, 1.0)).convert_alpha()
-        self.Rect = self.Image.get_rect()
-
-    def changeImage(self,image):
-        self.Image = image
+        self.Image = Image.scaleImage(pygame.image.load(local), (2.0, 2.0)).convert_alpha()
         self.Rect = self.Image.get_rect()
 
     def scaleImage(image, scale=(1.0, 1.0)):
@@ -301,7 +289,6 @@ class imageNotes:  # lista de botões para instanciar as notas (definir comporta
         global display_Width
         self.display_Height = display_Height
         self.display_Width = display_Width
-        self.rposX = [[0.105,-0.255],[0.06,-0.130],[0.0,0.0],[-0.06,0.130],[-0.105,0.255]]
 
     def loadImages(self, local):
         self.Images = []
@@ -314,26 +301,26 @@ class imageNotes:  # lista de botões para instanciar as notas (definir comporta
     def isometricPositionDraw(self, index,
                               time):  # transforma a imagem dependendo da posição em que ela aparece,para se mostrar uma vista isometrica,para desenha-la
         global Time, deltaTime
-        iniRatio = 0.54
+        iniRatio = 0.20
         lastRatio = 0.95
-        posY0 = iniRatio*self.display_Height
+        showNoteTime = 0.2
 
         r = (Time - time - deltaTime)
         if (r <= 0.0):
             return
 
-        ratio = (r * (lastRatio - iniRatio) / deltaTime + iniRatio)/lastRatio
-
+        ratio = r * (lastRatio - iniRatio) / deltaTime + iniRatio
         image = Image.scaleImage(self.Images[index].Image, (ratio, ratio))
+
         #### altera-se em posY a distância do topo da tela e o início da nota
-        posY = ratio * self.display_Height
+        posY = ratio * self.display_Height + 240
         #### altera-se em posX a distância horizontal entre as notas
-        posX = self.display_Width*(1+self.rposX[index][0] + ratio*(self.rposX[index][1]- self.rposX[index][0]))/2
-        dy = image.get_height()
-        r = (posY + (dy>>1) - posY0)/dy
-        if (r < 1):
-            image = Image.cutImage(image, (1.0, r))
-            dy = (dy - image.get_height())>>1
+        posX = self.display_Width / 2 + 1.2 * (index - 2) * image.get_width()
+
+        if (r < showNoteTime):
+            dy = image.get_height()
+            image = Image.cutImage(image, (0.0, r / showNoteTime))
+            dy = dy - image.get_height() / 2
             Image.drawChangedImage(image, (posX, posY + int(dy)))
             return
         Image.drawChangedImage(image, (posX, posY))
@@ -347,32 +334,24 @@ class playNote():
         self.posY = 0.95 * display_Height
         self.posX = []
 
-        """for i in range(0, 5):
-                                    self.posX.append(display_Width / 2 + 1.5 * (i - 2) * Notes.Images[i].Image.get_width())"""
+        for i in range(0, 5):
+            self.posX.append(display_Width / 2 + 1.5 * (i - 2) * Notes.Images[i].Image.get_width())
         self.Images = []  # imagem a ser desenhada
         self.NormalStateImage = []  # imagem a ser desenhada quando os botões para pressionar as notas não forem ativados
         self.pressedImages = []  # imagem a ser desenhada quando os botões forem ativados e errarem
         self.rightImages = []  # imagem a ser desenhada quando as notas forem pressionadas corretamente
         i = 0
-        escala = 2
+
         for loc in nomallocal:
-            img = Image(loc)
-            img.changeImage(Image.scaleImage(img.Image, scale=(escala, escala)))
-            self.NormalStateImage.append(img)
-            self.Images.append(img)
+            self.NormalStateImage.append(Image(loc))
+            self.Images.append(Image(loc))
             i = i + 1
-        for i in range(0, 5):
-            self.posX.append(display_Width / 2 + 1.5 * (i - 2) * self.NormalStateImage[i].Image.get_width())
 
         for loc in pressDir:
-            img = Image(loc)
-            img.changeImage(Image.scaleImage(img.Image, scale=(escala, escala)))
-            self.pressedImages.append(img)
+            self.pressedImages.append(Image(loc))
 
         for loc in rightDir:
-            img = Image(loc)
-            img.changeImage(Image.scaleImage(img.Image, scale=(escala, escala)))
-            self.rightImages.append(img)
+            self.rightImages.append(Image(loc))
         self.i = i  # número de imagens armazenadas na variável
 
     def notePressed(self, i, time, impresTime):
@@ -391,11 +370,11 @@ class playNote():
         n = indexButtonDraw[i]
         j = -1
 
-        while t > impresTime and j < n:
+        while t >= impresTime and j < n:
             j = j + 1
             t = time - buttonList[i][j] - 2 * deltaTime
         if onPause == False:
-            if t < impresTime/10 and t > -impresTime:
+            if t < impresTime and t > -impresTime:
                 self.Images[i] = self.rightImages[i]  # troca a imagem a ser desenhada
                 del buttonList[i][j]
                 indexButtonDraw[i] = indexButtonDraw[i] - 1
@@ -420,12 +399,12 @@ class playNote():
         i = 0
         while i < 5:
             pos = (self.posX[i], self.posY)
-            Image.drawChangedImage(self.Images[i].Image, (self.posX[i] , self.posY))
+            Image.drawChangedImage(self.Images[i].Image, (self.posX[i] / 2 + 280, self.posY))
             i = i + 1
 
     def events(self, evt):
         global Time
-        imprecisionTime = 1  # intervalo de tempo em que o jogador pode ser impreciso
+        imprecisionTime = 1.2  # intervalo de tempo em que o jogador pode ser impreciso
         i = -1
         for event in evt:
             if event.type == pygame.KEYDOWN:
@@ -453,6 +432,105 @@ class playNote():
                     i = 4
                 self.noteUnpress(i)
 
+# class playNote():
+#     def __init__(self, nomallocal, pressDir, rightDir):
+#         global display_Height
+#         global display_Width
+#         global Notes
+#         self.posY = 0.95 * display_Height
+#         self.posX = []
+#
+#         for i in range(0, 5):
+#             self.posX.append(display_Width / 2 + 1.5 * (i - 2) * Notes.Images[i].Image.get_width())
+#         self.Images = []  # imagem a ser desenhada
+#         self.NormalStateImage = []  # imagem a ser desenhada quando os botões para pressionar as notas não forem ativados
+#         self.pressedImages = []  # imagem a ser desenhada quando os botões forem ativados e errarem
+#         self.rightImages = []  # imagem a ser desenhada quando as notas forem pressionadas corretamente
+#         i = 0
+#
+#         for loc in nomallocal:
+#             self.NormalStateImage.append(Image(loc))
+#             self.Images.append(Image(loc))
+#             i = i + 1
+#
+#         for loc in pressDir:
+#             self.pressedImages.append(Image(loc))
+#
+#         for loc in rightDir:
+#             self.rightImages.append(Image(loc))
+#         self.i = i  # número de imagens armazenadas na variável
+#
+#     def notePressed(self, i, time, impresTime):
+#         global buttonList
+#         global deltaTime
+#         global indexButtonDraw
+#         global counterros, countacertos
+#         if not buttonList[i]:
+#             self.Images[i] = self.pressedImages[i]
+#             return
+#
+#         t = time - buttonList[i][0] - 2 * deltaTime
+#         t = impresTime * 2  # garante que entra no próximo loop
+#         n = indexButtonDraw[i]
+#         j = -1
+#
+#         while t >= impresTime and j < n:
+#             j = j + 1
+#             t = time - buttonList[i][j] - 2 * deltaTime
+#         if not onPause:
+#             if impresTime > t > -impresTime:
+#                 self.Images[i] = self.rightImages[i]  # troca a imagem a ser desenhada
+#                 del buttonList[i][j]
+#                 indexButtonDraw[i] = indexButtonDraw[i] - 1
+#                 countacertos = countacertos + 1
+#                 # print('acertos = ', countacertos) #adiciona os pontos por ter acertado a nota
+#             else:
+#                 self.Images[i] = self.pressedImages[i]
+#                 errorSound.play()
+#                 counterros = counterros + 1
+#                 # print('erros = ', counterros)
+#
+#     def noteUnpress(self, i):
+#         self.Images[i] = self.NormalStateImage[i]
+#
+#     def drawPlayNotes(self):
+#         i = 0
+#         while i < 5:
+#             pos = (self.posX[i], self.posY)
+#             Image.drawChangedImage(self.Images[i].Image, (self.posX[i] / 2 + 280, self.posY))
+#             i = i + 1
+#
+#     def events(self, evt):
+#         global Time
+#         imprecisionTime = 1  # intervalo de tempo em que o jogador pode ser impreciso
+#         i = 0
+#         for event in evt:
+#             if event.type == pygame.KEYDOWN:
+#                 if event.key == pygame.K_a:
+#                     i = 0
+#                 elif event.key == pygame.K_s:
+#                     i = 1
+#                 elif event.key == pygame.K_d:
+#                     i = 2
+#                 elif event.key == pygame.K_j:
+#                     i = 3
+#                 elif event.key == pygame.K_k:
+#                     i = 4
+#                 self.notePressed(i, Time, imprecisionTime)
+#             elif event.type == pygame.KEYUP:
+#                 if event.key == pygame.K_a:
+#                     i = 0
+#                 elif event.key == pygame.K_s:
+#                     i = 1
+#                 elif event.key == pygame.K_d:
+#                     i = 2
+#                 elif event.key == pygame.K_j:
+#                     i = 3
+#                 elif event.key == pygame.K_k:
+#                     i = 4
+#                 self.noteUnpress(i)
+
+
 Notes = imageNotes()
 Notes.loadImages(("images/green_note.png", "images/yellow_note.png", "images/red_note.png", "images/blue_note.png",
                   "images/orange_note.png"))
@@ -462,10 +540,10 @@ pressNotes = playNote(nomallocal=(
                       , pressDir=(
     "images/green_pressed.png", "images/yellow_pressed.png", "images/red_pressed.png", "images/blue_pressed.png",
     "images/orange_pressed.png")
-                      , rightDir=(
-    "images/ok_note.png", "images/ok_note.png", "images/ok_note.png", "images/ok_note.png",
-    "images/ok_note.png"))
+                      , rightDir = ("images/ok_note.png","images/ok_note.png","images/ok_note.png","images/ok_note.png","images/ok_note.png"))
 
+
+###### alterar as imagens dorightDir
 
 def makesList():
     global buttonList
@@ -558,7 +636,6 @@ ImageMestreSurprised = pygame.image.load('images/surpresa.png')
 ImageMestreSad = pygame.image.load('images/triste.png')
 ImageMestreDead = pygame.image.load('images/morta.png')
 ImageMestreWings = pygame.image.load('images/mortaAsas.png')
-ImageGameOver = pygame.image.load('images/game_over.png')
 
 
 def drawScene():
@@ -566,29 +643,21 @@ def drawScene():
     # global background_surface
     global display_Width, display_Height
     global counterros, countacertos, BackGr
-    global musicaJogo
-    global onPause
-    global text2, pauseFont
-
-    scr = countacertos - counterros
 
     # gameDisplay.blit(background_surface,(0,0))
     gameDisplay.blit(BackGr, (0, 0))
 
     atual_frame_rect.append(gameDisplay.blit(ImageMestreNormal, (display_Width / 2 - 125, 45)))
 
-    if -10 < scr < 0:
+    if 70 < counterros < 100:
         atual_frame_rect.append(gameDisplay.blit(ImageMestreSad, (display_Width / 2 - 125, 45)))
-    elif -25 < scr <= -10:
+    elif 100 <= counterros < 110:
         atual_frame_rect.append(gameDisplay.blit(ImageMestreDead, (display_Width / 2 - 125, 45)))
-    elif scr <= -25:
+    elif counterros >= 110:  # gameover
         atual_frame_rect.append(gameDisplay.blit(ImageMestreWings, (display_Width / 2 - 125, 45)))
-        onPause = True
-        musicaJogo.pause()
-        atual_frame_rect.append(gameDisplay.blit(ImageGameOver, (240,255)))
-        #somzera
+        
 
-    if scr > 60:
+    if countacertos > 50:
         atual_frame_rect.append(gameDisplay.blit(ImageMestreSurprised, (display_Width / 2 - 125, 45)))
 
     ButtonsToDraw()
@@ -601,7 +670,6 @@ ImageFour = pygame.image.load('images/cont4.png')
 CarniChegou = pygame.image.load('images/carniceriachegou.png')
 
 
-
 def contRegress():
     global ImageOne
     global ImageTwo
@@ -609,31 +677,25 @@ def contRegress():
     global ImageFour
     global CarniChegou
     global atual_frame_rect
-    global timePause
-    timePause=0
+
+    timePause = 0
 
     if temporizador >= (3 + timePause) and temporizador < (3.8 + timePause):
         atual_frame_rect.append(gameDisplay.blit(ImageOne, (display_Width / 2 - 250, 100)))
-    elif temporizador >= (3.8 + timePause) and temporizador < (4.6 + timePause):
+    elif temporizador >= 3.8 and temporizador < 4.6:
         atual_frame_rect.append(gameDisplay.blit(ImageTwo, (display_Width / 2 - 180, 100)))
-    elif temporizador >= (4.6 + timePause) and temporizador < (5.4 + timePause):
+    elif temporizador >= 4.6 and temporizador < 5.4:
         atual_frame_rect.append(gameDisplay.blit(ImageThree, (display_Width / 2 - 180, 100)))
-    elif temporizador >= (5.4 + timePause) and temporizador < (6.2 + timePause):
+    elif temporizador >= 5.4 and temporizador < 6.2:
         atual_frame_rect.append(gameDisplay.blit(ImageFour, (display_Width / 2 - 220, 100)))
-    elif temporizador >= (25.5 + timePause) and temporizador < (27.7 + timePause):
+    elif temporizador >= 25.5 and temporizador < 27.7:
         atual_frame_rect.append(gameDisplay.blit(CarniChegou, (display_Width / 2 - 370, 280)))
 
 
 ImagePause = pygame.image.load('images/pause.png')
 ImageScore = pygame.image.load('images/score.png')
-scoreAntigo = 0
-##painel de scores
-text = pygame.font.Font("Symtext.ttf", 37)
-text2 = pygame.font.Font("8-bit pusab.ttf", 40)
-realScore = text.render(str(0), 1, white)
-pauseFont = text.render("PAUSE", 1, yellow_carni)
 
-blitText = []
+
 def Update():
     global Time
     global onPause
@@ -643,12 +705,9 @@ def Update():
     global pressNotes
     global gameDisplay, display_Width, display_Height
     global musicaJogo
-    global counterros, countacertos,scoreAntigo
+    global counterros, countacertos
     global atual_frame_rect, last_frame_rect
     global ImagePause, ImageScore
-    global realScore,text,blitText
-    global timePause, tempopause, tempodespause
-    global pauseFont,text2,blitText
 
     score = countacertos - counterros
 
@@ -657,11 +716,12 @@ def Update():
         Frame = Frame + 1
         Time = Time + dt
 
-    
-    if not score == scoreAntigo:
-        realScore = text.render(str(score), 1, white)
+    ##painel de scores
+    text = pygame.font.Font("Symtext.ttf", 37)
+    realScore = text.render(str(score), 1, white)    
 
     drawScene()
+
     evt = Event()
     for event in evt:
         if event.type == GameQuit():
@@ -672,26 +732,18 @@ def Update():
                     onPause = False
                     musicaJogo.unpause()
                     print(onPause)
-                    tempodespause = temporizador
 
                 elif not onPause:
                     onPause = True
                     musicaJogo.pause()
-                    tempopause = temporizador
+
                     print(onPause)
-                    # fazer a imagem ficar enquanto o pause é vdd   
-    
-    
+                    # fazer a imagem ficar enquanto o pause é vdd
+                    #gameDisplay.blit(ImagePause, (150,300))
+
     if not onPause:
-        if not scoreAntigo == score:
-            atual_frame_rect.append(gameDisplay.blit(ImageScore, (40, 630)))
-            atual_frame_rect.append(gameDisplay.blit(realScore, (240, 619)))
-            atual_frame_rect.append(blitText)
-        else:
-            gameDisplay.blit(ImageScore, (40, 630))
-            blitText = gameDisplay.blit(realScore, (240, 619))
-    else:
-        blitText = gameDisplay.blit(pauseFont, (40, 630))
+        gameDisplay.blit(ImageScore, (40, 630))
+        gameDisplay.blit(realScore, (240, 619))
 
     contRegress()
 
@@ -701,31 +753,13 @@ def Update():
     last_frame_rect = atual_frame_rect
     atual_frame_rect = []
 
-
-# makesList()
 makesListVirada()
 
 inicio = time.time()
-tempozera1 = [0]
-tempozera2 = [0]
-i = 0
-
 frame = 0
 while not gameExit:
-
     fim = time.time()
     temporizador = fim - inicio
-    # fimPause = temporizador
-    # inicioPause = fimPause
-    if onPause == True:
-        tempozera1.append(temporizador)
-        i = i + 1
-        # inicioPause = temporizador
-        # print('pausadoooooooooo', tempozera1[i]-tempozera1[1])
-    if onPause == False:
-        fimPause = temporizador
-
-    # print('pausouuuuuuuuuuuuuuuuuuuuuuuuu?', tempozera1[i])
     if frame % 30 == 0:
         print(temporizador)
     Update()
