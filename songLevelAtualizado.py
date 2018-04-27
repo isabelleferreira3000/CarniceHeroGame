@@ -1,3 +1,4 @@
+#Esse codigo era para testar a fase das musicas,mas foi alterada para digitar o banco de dados
 #Explicação do codigo:A maioria das funções aqui provavelmente não serão aproveitadas(provavelmente serão feitos ou 
 #usados alguns modulos para fazer essas funcionalidades),as variaveis mais importantes são:
 #buttonList,indexButtonDraw,Time,deltaTime,Notes,gameDisplay,background_surface.
