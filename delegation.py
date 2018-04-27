@@ -4,17 +4,22 @@ class delegate:
         if(function != None):
             self.func.append(function)
     def add(self,function):
-        i = self.find(function)
+        if not function == None:
+            i = self.find(function)
 
-        if i == -1:
-            self.func.append(function)
+            if i == -1:
+                self.func.append(function)
     def remove(self,function):
         i = self.find(function)
         if i != -1:
             del self.func[i]
-    def call(self,x):
-        for a in self.func:
-            a(x)
+    def call(self,x = None):
+        if x == None:
+            for a in self.func:
+                a()
+        else:
+            for a in self.func:
+                a(x)
     def isEmpty(self):
         if len(self.func) == 0:
             return True
@@ -29,3 +34,16 @@ class delegate:
             i = i + 1
 
         return -1
+    def pop(self):
+        n = len(self.func) - 1
+        a = None
+        if n>= 0:
+            a = self.func[n]
+            del self.func[n]
+        return a
+    def top(self):
+        n = len(self.func) - 1
+        a = None
+        if n>= 0:
+            a = self.func[n]
+        return a

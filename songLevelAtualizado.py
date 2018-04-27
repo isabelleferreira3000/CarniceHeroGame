@@ -31,20 +31,44 @@ Frame = 0
 numberOfButtons = 0
 
 
+def makesList():
+    lista = []
+    lastTime = '0.0'
+    n = 0
+    #dn = 1
+    #flag = 0
+    #print('flag' + str(flag))
+    while n < 200:
+        i = random.randint(0,20)
+        if lista:
+            lastTime = lista[len(lista) - 1][0]
+        lastTime = float(lastTime) + random.randint(0,40)/10
+        t = []
+        t.append(lastTime)
+        t.append(i)
 
-def makesList(notes):
+        lista.append(t)
+        n = n + 1
+    for line in lista:
+        print(str(line[0])+'-' + str(line[1]))
+makesList()
+"""def makesList(notes):
     buttonList = notes.noteList
-    lastTime = 0
+    lastTime = 0.0
     n = 0
     #dn = 1
     #flag = 0
     #print('flag' + str(flag))
     while n < 2000:
-        i = random.randint(0,4)
-        if buttonList[i]:
-            lastTime = buttonList[i][len(buttonList[i]) - 1]
-        lastTime = lastTime + random.randint(0,40)/10
-        buttonList[i].append(lastTime)
+        i = random.randint(0,20)
+        if buttonList:
+            lastTime = buttonList[len(buttonList) - 1][0]
+        lastTime = lastTime + float(random.randint(0,40)/10)
+        t = []
+        t.append(lastTime)
+        t.append(i)
+
+        buttonList.append(t)
         n = n + 1
         #dn = dn - 1
     #return n
@@ -69,3 +93,4 @@ while not gameState.getGameExit():
     gameState.update()
 pygame.quit()
 print("fim")
+"""

@@ -1,4 +1,5 @@
 import pygame
+import directoryManager
 
 
 class sound:
@@ -8,7 +9,7 @@ class sound:
         print(str(pygame.mixer.get_num_channels()))
         self.Channel = pygame.mixer.Channel(numChannel)
         self.sound = pygame.mixer.Sound(local) #armazena no objeto o local do som
-        self.volume = 100
+        self.volume = 10
     def play(self):#inicia o som
         self.Channel.play(self.sound)
         self.setVolume(self.volume)
@@ -16,22 +17,30 @@ class sound:
         self.Channel.pause()
     def unpause(self):
         self.Channel.unpause()
-    def setVolume(self,vol = 100):#o volume é de 0-100
+    def setVolume(self,vol = 10):#o volume é de 0-100
         self.volume = vol
         
-        self.Channel.set_volume(vol/100.0)
+        self.Channel.set_volume(vol/10.0)
     def volumeIs(self):#retorna o vlume de 0-100
-        return 100*self.Channel.get_volume()
+        return 10*self.Channel.get_volume()
         
 class music:
     def __init__(self,local):
         if pygame.mixer.get_init() == None:
             pygame.mixer.init()
-        pygame.mixer.music.load(local)
+        self.local = local
+        pygame.mixer.music.load(local + ".mp3")
+        self.rewind()
+        pygame.mixer.music.pause()
         self.startedPlaying = False
         self.isPaused = False
-        self.volume = 100
-
+        self.volume = 10
+    def isPlaying(self):
+        return pygame.mixer.music.get_busy()
+    def haveStarted(self):
+        return self.startedPlaying
+    def isMusicPaused(self):
+        return self.isPaused
     def play(self):#inicia a musica
         if not self.startedPlaying:
             pygame.mixer.music.play()
@@ -43,19 +52,33 @@ class music:
     def pause(self):#Para a musica
         pygame.mixer.music.pause()
         self.isPaused = True
-    def setVolume(self,vol = 100):#o volume é de 0-100
+    def setVolume(self,vol = 10):#o volume é de 0-10
         self.volume = vol
-        pygame.mixer.music.set_volume(vol/100)
+        pygame.mixer.music.set_volume(vol/10)
     def volumeIs(self):#retorna o vlume de 0-100
         return self.volume
     def setTime(self,time):
+        if time < 0 or (not self.isPlaying()):
+            if time < 0:
+                self.startedPlaying = False
+                time = 0
+            print("Rewind")
+            self.play()
+            self.rewind()
+            pygame.mixer.music.pause()
+            self.startedPlaying = False
+            self.isPaused = False
         pygame.mixer.music.set_pos(time)
+        
+
+
+
     def getTime(self):
         return pygame.mixer.music.get_pos()
     def rewind(self):
         pygame.mixer.music.rewind()
 
-def teste():
+"""def teste():
     display_Width = 600
     display_Height = 300
     FPS = 2
@@ -101,4 +124,4 @@ def teste():
 
     pygame.quit()
 
-teste()
+teste()"""
