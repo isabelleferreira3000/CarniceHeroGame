@@ -8,3 +8,6 @@ Vai ter uma branch para cada um de nós, então inicialmente colocamos nossas mu
 Uma boa prática para projetos é separar as classes em arquivos separados e depois dar "import" nesses arquivos, que assim fica mais fácil de debuggar.
 
 # É isso aí, pessoal! Vamos dar o gás nessa 6a semana que está mais livre que o normal! Não estamos tão atrasados no planejamento, então é possível entregar nosso jogo bem bonitinho (:
+
+#Branch "PedroAlvez":Codigo que junta o os modules é o main.py
+Nela tem o codigo mais otimizado,mas  ocorreu um bug para ler o banco de dados e a versão do pygame não possui o metodo "pygame.mixer.music.set_pos" que é de muita importancia para parte do codigo,e não deu para resolver até o prazo final
