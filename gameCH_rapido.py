@@ -667,7 +667,7 @@ scoreAntigo = 0
 text = pygame.font.Font("Symtext.ttf", 37)
 text2 = pygame.font.Font("8-bit pusab.ttf", 40)
 realScore = text.render(str(0), 1, white)
-pauseFont = text.render("PAUSE", 1, yellow_carni)
+pauseFont = text.render("PAUSE          ", 1, yellow_carni)
 
 blitText = []
 def Update():
@@ -704,7 +704,7 @@ def Update():
             gameExit = True
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                if temporizador > 27.7:
+                if temporizador > 5:
                     if onPause:
                         onPause = False
                         musicaJogo.unpause()
@@ -727,7 +727,7 @@ def Update():
             blitText = gameDisplay.blit(realScore, (240, 619))
     else:
         if not gameOver:
-            blitText = gameDisplay.blit(pauseFont, (100, 630))
+            atual_frame_rect.append(gameDisplay.blit(pauseFont, (30, 630)))
 
     contRegress()
 
