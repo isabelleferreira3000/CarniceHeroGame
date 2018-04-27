@@ -1,3 +1,4 @@
+# a função principal que junta os codigos
 from gui import *
 from audioManager import *
 import gameStateManager,directoryManager,databaseManager,noteManager,delegation
