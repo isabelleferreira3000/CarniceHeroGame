@@ -13,6 +13,7 @@ timePause = 0
 tempodespause = 0
 tempopause = 0
 
+
 class Relogio:
     """ Classe com as informacoes do relogio do jogo. """
 
@@ -253,7 +254,7 @@ errorSound = pygame.mixer.Sound("sounds/note_erro.ogg")
 gameoverSound = pygame.mixer.Sound("sounds/gameoversound.ogg")
 wingameSound = pygame.mixer.Sound("sounds/winsound.ogg")
 musicaJogo = pygame.mixer.music
-musicaJogo.load("sounds/samba_normal0.7.ogg")
+musicaJogo.load("sounds/samba_normal_2_0.7.ogg")
 
 
 
@@ -575,6 +576,7 @@ ImageMestreGanhou = pygame.image.load('images/ganhouBone.png')
 
 gameOver = False
 playerGanhou = False
+contador_musica_derrota = 0
 
 def drawScene():
     global gameDisplay
@@ -584,7 +586,7 @@ def drawScene():
     global musicaJogo
     global onPause
     global text2, pauseFont
-    global gameOver, playerGanhou
+    global gameOver, playerGanhou, contador_musica_derrota
 
     scr = countacertos - counterros
 
@@ -602,8 +604,10 @@ def drawScene():
             atual_frame_rect.append(gameDisplay.blit(ImageMestreWings, (display_Width / 2 - 125, 45)))
             onPause = True
             gameOver = True
-            musicaJogo.pause()
-            gameoverSound.play(1)
+            if contador_musica_derrota == 0:
+                musicaJogo.pause()
+                gameoverSound.play()
+                contador_musica_derrota += 1
             atual_frame_rect.append(gameDisplay.blit(ImageGameOver, (240,255)))
             atual_frame_rect.append(gameDisplay.blit(ImageScoreFinal, (80, 630)))
 
@@ -621,7 +625,7 @@ ImageFour = pygame.image.load('images/cont4.png')
 CarniChegou = pygame.image.load('images/carniceriachegou.png')
 VoceGanhou = pygame.image.load('images/voce_ganhou.png')
 
-
+contador_musica_vitoria = 0
 
 def contRegress():
     global ImageOne
@@ -631,7 +635,7 @@ def contRegress():
     global CarniChegou
     global atual_frame_rect
     global timePause
-    global playerGanhou
+    global playerGanhou, contador_musica_vitoria
     
     timePause=0
 
@@ -646,12 +650,14 @@ def contRegress():
             atual_frame_rect.append(gameDisplay.blit(ImageFour, (display_Width / 2 - 220, 100)))
         elif temporizador >= (25.5 + timePause) and temporizador < (27.7 + timePause):
             atual_frame_rect.append(gameDisplay.blit(CarniChegou, (display_Width / 2 - 370, 280)))
-        elif temporizador > 35:
+        elif temporizador > 140:
             playerGanhou = True
             atual_frame_rect.append(gameDisplay.blit(ImageMestreGanhou, (display_Width / 2 - 125, 45)))
             atual_frame_rect.append(gameDisplay.blit(VoceGanhou, (228,255)))
-            musicaJogo.pause()
-            wingameSound.play()
+            if contador_musica_vitoria == 0:
+                musicaJogo.pause()
+                wingameSound.play()
+                contador_musica_vitoria += 1
         
 
 ImagePause = pygame.image.load('images/pause.png')
@@ -710,8 +716,7 @@ def Update():
                         musicaJogo.pause()
                         tempopause = temporizador
                         print(onPause)
-    
-    
+
     if not onPause:
         if not scoreAntigo == score:
             atual_frame_rect.append(gameDisplay.blit(ImageScore, (40, 630)))
