@@ -254,7 +254,7 @@ errorSound = pygame.mixer.Sound("sounds/note_erro.ogg")
 gameoverSound = pygame.mixer.Sound("sounds/gameoversound.ogg")
 wingameSound = pygame.mixer.Sound("sounds/winsound.ogg")
 musicaJogo = pygame.mixer.music
-musicaJogo.load("sounds/samba_normal_2_0.7.ogg")
+musicaJogo.load("sounds/samba_normal0.7.ogg")
 
 
 
